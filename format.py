@@ -82,7 +82,7 @@ for (label, ble_id), df in original_df.groupby(["label", "ble_id"]):
     tmp_df = pd.DataFrame(columns=formatted_df.columns)
     for dfi in tdf:
         record = {"label": label}
-        record.update({f"{place}-{detector}": 100 for place, detector in DETECTORS})
+        record.update({f"{place}-{detector}": 200 for place, detector in DETECTORS})
         for (place, detector), tdfi in dfi.groupby(["place", "detector"]):
             record[f"{place}-{detector}"] = tdfi["proxi"].mean()
         tmp_df.loc[len(tmp_df)] = record
