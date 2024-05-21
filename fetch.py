@@ -47,6 +47,7 @@ LABELS = [
     "8-322",
     "corridor",
 ]
+HEADER = "label,id,timestamp,ble_id,place,proxi,detector,batt"
 
 # コマンドライン引数を処理する
 parser = argparse.ArgumentParser(description="fetch data from aqualog database")
@@ -90,7 +91,8 @@ with mysql.connector.connect(
     host=host,
     user=user,
     password=password,
-    database="aqualog"
+    database="aqualog",
+
 ) as connection:
     if connection.is_connected():
         print("Connected to MySQL database", file=sys.stderr)
@@ -111,7 +113,13 @@ with mysql.connector.connect(
 
     # 出力ファイルを開く
     with open(output_file, "a" if append else "w") as f:
+        # ヘッダを書き込む
+        if not append:
+            f.write(HEADER + "\n")
         while True:
+            # データベースを最新の状態に更新する
+            connection.commit()
+            
             # データを取得する
             with connection.cursor() as cursor:
                 cursor.execute(QUERY_FOR_OBSERVATION % ",".join(map(str, ble_ids)))
