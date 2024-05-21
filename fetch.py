@@ -117,6 +117,8 @@ with mysql.connector.connect(
         if not append:
             f.write(HEADER + "\n")
         while True:
+            # interval 秒待つ
+            time.sleep(interval)
             # データベースを最新の状態に更新する
             connection.commit()
             
@@ -125,8 +127,7 @@ with mysql.connector.connect(
                 cursor.execute(QUERY_FOR_OBSERVATION % ",".join(map(str, ble_ids)))
                 for row in cursor.fetchall():
                     f.write(f"{label}," + ",".join(map(str, row)) + "\n")
-            f.flush()
             print("Fetched data from aqualog database", file=sys.stderr)
-            # interval 秒待つ
-            time.sleep(interval)
+            f.flush()
+
 
