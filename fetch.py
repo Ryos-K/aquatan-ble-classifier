@@ -92,7 +92,6 @@ with mysql.connector.connect(
     user=user,
     password=password,
     database="aqualog",
-
 ) as connection:
     if connection.is_connected():
         print("Connected to MySQL database", file=sys.stderr)

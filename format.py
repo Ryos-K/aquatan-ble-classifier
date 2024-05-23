@@ -82,11 +82,15 @@ for (label, ble_id), df in original_df.groupby(["label", "ble_id"]):
     tmp_df = pd.DataFrame(columns=formatted_df.columns)
     for dfi in tdf:
         record = {"label": label}
-        record.update({f"{place}-{detector}": 200 for place, detector in DETECTORS})
+        # record.update({f"{place}-{detector}": 100 for place, detector in DETECTORS})
         for (place, detector), tdfi in dfi.groupby(["place", "detector"]):
             record[f"{place}-{detector}"] = tdfi["proxi"].mean()
         tmp_df.loc[len(tmp_df)] = record
     formatted_df = pd.concat([formatted_df, tmp_df.loc[len(DETECTORS):]], ignore_index=True)
+
+# Null データと基準値以上の値を 100 に変換する
+formatted_df = formatted_df.fillna(100)
+formatted_df[HEADER.split(",")[1:]] = formatted_df[HEADER.split(",")[1:]].map(lambda x: 100 if x > 100 else x)
 
 # データを書き込む
 if force:
