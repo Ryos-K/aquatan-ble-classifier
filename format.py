@@ -14,6 +14,8 @@ Options:
         出力ファイル名を指定する．
     --time_window <int> : default=30
         時間窓を指定する．
+    --weighted_average : default=False
+        重複データの処理に加重平均を用いる．
     --append : default=False
         出力ファイルが存在する場合に追記する．
     --force : default=False
@@ -42,6 +44,7 @@ parser = argparse.ArgumentParser(description="format data for machine learning m
 parser.add_argument("-i", "--input", type=str, default="data.csv", help="input file")
 parser.add_argument("-o", "--output", type=str, default="formatted.csv", help="output file")
 parser.add_argument("-t", "--time_window", type=int, default=30, help="time window")
+parser.add_argument("-w", "--weighted_average", action="store_true", help="use weighted average for duplicate data")
 parser.add_argument("-a", "--append", action="store_true", help="append to output file")
 parser.add_argument("-f", "--force", action="store_true", help="force overwrite output file")
 args = parser.parse_args()
@@ -49,6 +52,7 @@ args = parser.parse_args()
 input_file = args.input
 output_file = args.output if args.output.endswith(".csv") else f"{args.output}.csv"
 time_window = args.time_window
+weighted_average = args.weighted_average
 append = args.append
 force = args.force
 
@@ -71,20 +75,27 @@ else:
 
 # データを読み込む
 original_df = pd.read_csv(input_file)
-original_df["timestamp"] = pd.to_datetime(original_df["timestamp"], unit="s")
+original_df["datetime"] = pd.to_datetime(original_df["timestamp"], unit="s")
 
 # データを整形する
 formatted_df = pd.DataFrame(columns=HEADER.split(","))
-
 for (label, ble_id), df in original_df.groupby(["label", "ble_id"]):
-    df = df.sort_values("timestamp")
-    tdf = df.rolling(f"{time_window}s", on="timestamp" )
+    df = df.sort_values("datetime")
+    tdf = df.rolling(f"{time_window}s", on="datetime" )
     tmp_df = pd.DataFrame(columns=formatted_df.columns)
     for dfi in tdf:
         record = {"label": label}
-        # record.update({f"{place}-{detector}": 100 for place, detector in DETECTORS})
-        for (place, detector), tdfi in dfi.groupby(["place", "detector"]):
-            record[f"{place}-{detector}"] = tdfi["proxi"].mean()
+        if weighted_average:
+            for (place, detector), tdfi in dfi.groupby(["place", "detector"]):
+                # 最新時刻からの時間的距離が [0, time_window / 2] の範囲の重み : 1
+                # 最新時刻からの時間的距離が (time_window / 2, time_window] の範囲の重み : 0.5
+                latest = tdfi["timestamp"].max()
+                time_diff = (latest - tdfi["timestamp"])
+                weights = time_diff.map(lambda x: 1 if x <= time_window / 2 else 0.5)
+                record[f"{place}-{detector}"] = ((tdfi["proxi"] * weights).sum()) / (weights.sum())
+        else:    
+            for (place, detector), tdfi in dfi.groupby(["place", "detector"]):
+                record[f"{place}-{detector}"] = tdfi["proxi"].mean()
         tmp_df.loc[len(tmp_df)] = record
     formatted_df = pd.concat([formatted_df, tmp_df.loc[len(DETECTORS):]], ignore_index=True)
 
