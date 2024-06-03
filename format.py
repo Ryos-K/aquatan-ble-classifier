@@ -36,8 +36,12 @@ DETECTORS = [
     ("8-303", "0"),
     ("8-303", "1"),
     ("8-303", "2"),
+    ("8-320", "0"),
+    ("8-320", "1"),
 ]
 HEADER = "label," + ",".join([f"{place}-{detector}" for place, detector in DETECTORS])
+
+pd.set_option('future.no_silent_downcasting', True)
 
 # コマンドライン引数を処理する
 parser = argparse.ArgumentParser(description="format data for machine learning model")
@@ -100,7 +104,7 @@ for (label, ble_id), df in original_df.groupby(["label", "ble_id"]):
     formatted_df = pd.concat([formatted_df, tmp_df.loc[len(DETECTORS):]], ignore_index=True)
 
 # Null データと基準値以上の値を 100 に変換する
-formatted_df = formatted_df.fillna(100)
+formatted_df[1:] = formatted_df[1:].fillna(100.0)
 formatted_df[HEADER.split(",")[1:]] = formatted_df[HEADER.split(",")[1:]].map(lambda x: 100 if x > 100 else x)
 
 # データを書き込む
