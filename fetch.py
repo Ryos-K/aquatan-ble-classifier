@@ -39,8 +39,8 @@ import argparse
 from collections import namedtuple
 
 # ble_id は label 列に対応する
-QUERY_FOR_ACCOUNT = "SELECT * FROM ble_tag WHERE label IN (%s)"
-QUERY_FOR_OBSERVATION = "SELECT * FROM room_log WHERE label IN (%s)"
+QUERY_FOR_ACCOUNT = "SELECT * FROM ble_tag WHERE label IN ({ble_ids})"
+QUERY_FOR_OBSERVATION = "SELECT * FROM room_log WHERE label IN ({ble_ids}) AND timestamp > (SELECT MAX(timestamp) FROM room_log) - {interval}"
 LABELS = [
     "8302",
     "8303",
@@ -101,7 +101,8 @@ if __name__ == "__main__":
 
         # ble_ids に対応するアカウントが存在するか確認する．
         with connection.cursor() as cursor:
-            cursor.execute(QUERY_FOR_ACCOUNT % ",".join(map(str, args.ble_ids)))
+            query = QUERY_FOR_ACCOUNT.format(ble_ids=",".join(map(str, args.ble_ids)))
+            cursor.execute(query)
             accounts = cursor.fetchall()
             for account in accounts:
                 active = "active  " if account[6] else "inactive"
@@ -118,12 +119,16 @@ if __name__ == "__main__":
             while True:
                 # interval 秒待つ
                 time.sleep(args.interval)
+                # Macならばbeep音を鳴らす
+                if sys.platform == "darwin":
+                    os.system("afplay /System/Library/Sounds/Glass.aiff")
                 # データベースを最新の状態に更新する
                 connection.commit()
                 
                 # データを取得する
                 with connection.cursor() as cursor:
-                    cursor.execute(QUERY_FOR_OBSERVATION % ",".join(map(str, args.ble_ids)))
+                    query = QUERY_FOR_OBSERVATION.format(ble_ids=",".join(map(str, args.ble_ids)) ,interval=args.interval)
+                    cursor.execute(query)
                     for row in cursor.fetchall():
                         f.write(f"{args.label}," + ",".join(map(str, row)) + "\n")
                 print("Fetched data from aqualog database", file=sys.stderr)
