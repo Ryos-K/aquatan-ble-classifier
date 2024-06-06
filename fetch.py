@@ -42,11 +42,11 @@ from collections import namedtuple
 QUERY_FOR_ACCOUNT = "SELECT * FROM ble_tag WHERE label IN ({ble_ids})"
 QUERY_FOR_OBSERVATION = "SELECT * FROM room_log WHERE label IN ({ble_ids}) AND timestamp > (SELECT MAX(timestamp) FROM room_log) - {interval}"
 LABELS = [
-    "8302",
-    "8303",
-    "8320",
-    "8322",
-    "8417",
+    "8-302",
+    "8-303",
+    "8-320",
+    "8-322",
+    "8-417",
     "corr",
     "other"
 ]
