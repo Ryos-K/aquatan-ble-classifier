@@ -1,5 +1,5 @@
 TIME_WINDOW=180
-INTERVAL=60
+INTERVAL=30
 PREPROCESS=lda+boxcox
 
 python classify.py \
