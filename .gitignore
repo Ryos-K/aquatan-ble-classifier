@@ -1,0 +1,9 @@
+.env
+data.csv
+formatted.csv
+windowed.csv
+windowed_x.csv
+mysql_playground.sh
+labels.txt
+lambdas.pkl
+model.pkl
