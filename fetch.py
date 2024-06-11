@@ -81,10 +81,10 @@ if __name__ == "__main__":
 
     # 環境変数を読み込む
     dotenv.load_dotenv(args.env)
-    host = os.getenv("HOST")
-    user = os.getenv("USER")
-    password = os.getenv("PASSWORD")
-    database = os.getenv("DATABASE")
+    host = os.getenv("AQUATAN_HOST")
+    user = os.getenv("AQUATAN_USER")
+    password = os.getenv("AQUATAN_PASSWORD")
+    database = os.getenv("AQUATAN_DATABASE")
 
     # データベースに接続する
     with mysql.connector.connect(
