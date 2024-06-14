@@ -9,6 +9,9 @@ pandas = "*"
 numpy = "*"
 scipy = "*"
 torch = "*"
+python-dotenv = "*"
+scikit-learn = "*"
+mysql-connector-python = "*"
 
 [dev-packages]
 
