@@ -144,7 +144,9 @@ if __name__ == "__main__":
         # 予測結果の記録用辞書
         Prediction = namedtuple("Prediction", ["place", "times", "flag"])
         prediction_dict: dict[int, Prediction] = {}
-        pd.read_sql_query(QUERY_FOR_ALLDELETE, engine)
+        with engine.connect() as connection:
+            connection.execute(sqlalchemy.text(QUERY_FOR_ALLDELETE))
+            connection.commit()
 
     # 位置情報を推定する
     while True:
