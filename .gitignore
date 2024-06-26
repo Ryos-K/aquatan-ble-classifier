@@ -7,3 +7,4 @@ mysql_playground.sh
 labels.txt
 lambdas.pkl
 model.pkl
+.vscode/settings.json

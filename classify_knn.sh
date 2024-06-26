@@ -1,8 +1,9 @@
+#!/bin/bash
 TIME_WINDOW=180
 INTERVAL=30
 PREPROCESS=lda+boxcox
 
-python classify.py \
+pipenv run python classify.py \
     knn \
     model/knn_t=${TIME_WINDOW}.pth \
     -i $INTERVAL \

@@ -54,6 +54,7 @@ QUERY_FOR_ACCOUNT = "SELECT label, name FROM ble_tag"
 QUERY_FOR_OBSERVATION = "SELECT * FROM room_log WHERE timestamp > (SELECT MAX(timestamp) FROM room_log) - {time_window} ORDER BY label, place, d_id;"
 QUERY_FOR_UPSERT = "INSERT INTO beacon_status (label, place) VALUES ({ble_id}, '{place}') ON DUPLICATE KEY UPDATE place = '{place}';"
 QUERY_FOR_DELETE = "DELETE FROM beacon_status WHERE label = {ble_id};"
+QUERY_FOR_ALLDELETE = "DELETE FROM beacon_status;"
 DETECTORS = [
     ("8-302", "0"),
     ("8-302", "1"),
@@ -143,12 +144,12 @@ if __name__ == "__main__":
         # 予測結果の記録用辞書
         Prediction = namedtuple("Prediction", ["place", "times", "flag"])
         prediction_dict: dict[int, Prediction] = {}
+        with engine.connect() as connection:
+            connection.execute(sqlalchemy.text(QUERY_FOR_ALLDELETE))
+            connection.commit()
 
     # 位置情報を推定する
     while True:
-        # interval 秒待つ
-        time.sleep(args.interval)
-
         # Flag のリセット
         for ble_id in prediction_dict:
             prediction_dict[ble_id] = prediction_dict[ble_id]._replace(flag=False)
@@ -215,4 +216,6 @@ if __name__ == "__main__":
                 for ble_id in drop_ble_ids:
                     prediction_dict.pop(ble_id)
 
+        # interval 秒待つ
+        time.sleep(args.interval)
         
